@@ -1,234 +1,419 @@
+
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WWZ-AV</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-            color: #333;
-        }
-        .container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
-            padding: 40px;
-        }
-        .product {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 30%;
-            margin: 20px;
-            padding: 20px;
-            border-radius: 10px;
-            background-color: #fff;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s ease;
-        }
-        .product:hover {
-            transform: scale(1.05);
-        }
-        .product h2 {
-            margin-bottom: 15px;
-            font-size: 1.2em;
-            color: #007BFF;
-        }
-        .product button {
-            padding: 10px 20px;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        .product button:hover {
-            background-color: #0056B3;
-        }
-        #video-player-container {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        }
-        #video-player-container video {
-            max-width: 90%;
-            max-height: 80vh;
-            border-radius: 10px;
-        }
-        #video-player-container button {
-            margin-top: 20px;
-            padding: 10px 30px;
-            background-color: #ff4d4d;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1em;
-        }
-        #video-player-container button:hover {
-            background-color: #e60000;
-        }
-        .modal {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            padding: 30px;
-            z-index: 10000;
-            text-align: center;
-            width: 80%;
-            max-width: 400px;
-        }
-        .modal button {
-            margin: 10px;
-            padding: 10px 20px;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .modal button:hover {
-            background-color: #0056B3;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WWZ-AI</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      background-color: #f4f4f9;
+    }
+    #header {
+      width: 100%;
+      padding: 20px;
+      text-align: center;
+      background-color: #4CAF50;
+      color: white;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    #chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      max-width: 98%;
+      background: #ffffff;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    }
+    #chat-box {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      background-color: #f1f1f1;
+    }
+    .user, .bot {
+      display: flex;
+      align-items: flex-end;
+      position: relative;
+    }
+    .user {
+      justify-content: flex-end;
+    }
+    .bot {
+      justify-content: flex-start;
+    }
+    .message {
+      display: inline-block;
+      padding: 15px;
+      border-radius: 15px;
+      max-width: 60%;
+      word-break: break-word;
+      font-size: 16px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      position: relative;
+    }
+    .bot .message {
+      background-color: #e0e0e0;
+      border-bottom-left-radius: 0;
+    }
+    .user .message {
+      background-color: #4CAF50;
+      color: white;
+      border-bottom-right-radius: 0;
+    }
+    .preview-button, .cancel-preview-button {
+      padding: 5px 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s;
+    }
+    .preview-button:hover, .cancel-preview-button:hover {
+      background-color: #45a049;
+    }
+    .cancel-preview-button {
+      background-color: red;
+      margin-left: 10px;
+    }
+    .cancel-preview-button:hover {
+      background-color: darkred;
+    }
+    .preview-window {
+      margin-top: 10px;
+      width: 100%;
+      height: 500px; /* Increased height for better visibility */
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      overflow: auto;
+      background: #fff;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      position: relative;
+    }
+    .preview-window iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    #input-container {
+      display: flex;
+      flex-direction: column;
+      border-top: 1px solid #ccc;
+      padding: 15px;
+      background-color: #fff;
+      align-items: center;
+    }
+    #user-input {
+      width: 100%;
+      padding: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+    .button-group {
+      display: flex;
+      width: 100%;
+      justify-content: space-between;
+    }
+    button {
+      padding: 15px 20px;
+      border: none;
+      background-color: #4CAF50;
+      color: white;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      flex: 1;
+      margin: 0 5px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    #delete-btn {
+      background-color: red;
+      color: white;
+    }
+    #delete-btn:hover {
+      background-color: darkred;
+    }
+    #model-selector {
+      display: flex;
+      align-items: center;
+    }
+    #model-options {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      flex: 1;
+      margin: 0 5px;
+    }
+    #welcome-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    #welcome-message {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      text-align: center;
+      font-size: 18px;
+      max-width: 80%;
+    }
+    #welcome-message button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      border: none;
+      background-color: #4CAF50;
+      color: white;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    #welcome-message button:hover {
+      background-color: #45a049;
+    }
+    @media (min-width: 600px) {
+      #input-container {
+        flex-direction: row;
+        align-items: center;
+      }
+      #user-input {
+        flex: 1;
+        margin-right: 10px;
+        margin-bottom: 0;
+      }
+      .button-group {
+        flex-direction: row;
+        width: auto;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="modal" id="age-modal">
-        <h2>您是否年满18岁？因本站特殊性质原因，需要成年才可以观看</h2>
-        <button onclick="handleAgeVerification(true)">A. 已满</button>
-        <button onclick="handleAgeVerification(false)">B. 未满</button>
+  <div id="header">WUWANGZE-AI</div>
+  <div id="chat-container">
+    <div id="chat-box"></div>
+    <div id="input-container">
+      <input type="text" id="user-input" placeholder="Type a message">
+      <div class="button-group">
+        <button onclick="sendMessage()">Send</button>
+        <button id="delete-btn" onclick="deleteMessages()">Delete</button>
+        <div id="model-selector">
+          <select id="model-options" onchange="changeModel()">
+            <option value="glm-4-flash">glm-4-flash</option>
+          </select>
+        </div>
+      </div>
     </div>
-    <div class="modal" id="quiz-modal" style="display:none;">
-        <h2>宇宙宙长是谁？</h2>
-        <input type="text" id="quiz-answer" placeholder="请输入答案" />
-        <button onclick="handleQuizAnswer()">提交</button>
-    </div>
-    <div id="video-player-container">
-        <video controls id="video-player">
-            <source id="video-source" type="video/mp4">
-            您的浏览器不支持 video 标签。
-        </video>
-        <button onclick="closeVideoPlayer()">关闭视频</button>
-    </div>
+  </div>
 
-    <div class="container" id="product-container">
+  <div id="welcome-modal">
+    <div id="welcome-message">
+      <p>该网站为AI问答网站，可以向AI提问，AI会耐心进行解答，可以和AI聊天</p>
+      <p>可以加我的QQ：3334094689<br>您的进群便是对我最大的支持</p>
+      <p>支持HTML代码在线预览</p>
+      <p>PS：如遇到长时间不回复，请重试</p>
+      <button onclick="closeModal()">确认</button>
     </div>
+  </div>
 
-    <script>
-        function checkTime() {
-            const currentTime = new Date();
-            const expiryTime = new Date('2024-09-20T16:00:00');
-            if (currentTime >= expiryTime) {
-                window.location.href = "https://www.xuexi.cn/";
-            }
-        }
-        function handleAgeVerification(isAdult) {
-            const ageModal = document.getElementById('age-modal');
-            const quizModal = document.getElementById('quiz-modal');
-            if (isAdult) {
-                ageModal.style.display = 'none';
-                quizModal.style.display = 'block';
-            } else {
-                window.location.href = "https://www.xuexi.cn/";
-            }
-        }
-        function handleQuizAnswer() {
-            const answer = document.getElementById('quiz-answer').value.trim();
-            if (answer === "吴旺泽") {
-                alert("本站致力于服务全球华人，为全球华人提供娱乐服务，因某些原因，本站不向中国公民（指拥有中国国籍的居民）提供服务，如若您是中国用户，请立即离开！本站对观看视频所造成的一切后果，不负任何法律责任！");
-                document.getElementById('quiz-modal').style.display = 'none';
-                document.getElementById('product-container').style.display = 'flex';
-                document.getElementById('video-player-container').style.display = 'none'; // 隐藏视频播放器
-                loadInitialProducts();
-                setupInfiniteScroll();
-            } else {
-                alert("你的回复错误，即将为您跳转到学习强国");
-                setTimeout(() => {
-                    window.location.href = "https://www.xuexi.cn/";
-                }, 1000);
-            }
-        }
+  <script>
+    var conversation = [];
+    var selectedModel = "glm-4-flash";
+    var sequence = 1;
 
-        function playVideo(url) {
-            let videoPlayerContainer = document.getElementById('video-player-container');
-            let videoSource = document.getElementById('video-source');
-            let videoPlayer = document.getElementById('video-player');
-            videoSource.src = url;
-            videoPlayer.load();
-            videoPlayerContainer.style.display = 'flex';
-            videoPlayerContainer.style.justifyContent = 'center';
-            videoPlayerContainer.style.alignItems = 'center';
-            document.body.style.overflow = 'hidden';
-        }
-        function closeVideoPlayer() {
-            let videoPlayerContainer = document.getElementById('video-player-container');
-            let videoPlayer = document.getElementById('video-player');
-            videoPlayer.pause();  // 停止视频播放
-            videoPlayerContainer.style.display = 'none';
-            document.body.style.overflow = 'auto';
-        }
-        window.onload = function() {
-            checkTime();
-            document.getElementById('age-modal').style.display = 'block';
-        }
-        const productList = [
-            { title: '2024年高考语文新I卷视频讲解', url: 'https://raw.githubusercontent.com/91plus/111/main/1-AI7-eT0MGwZy1w.mp4' },
-            { title: '2024年高考数学新I卷视频讲解', url: 'https://raw.githubusercontent.com/91plus/111/main/6JNwXKB5y4EBl6N8.mp4' },
-            { title: '2024年高考英语新I卷视频讲解', url: 'https://raw.githubusercontent.com/91plus/111/main/6MWGmUDAv1x0aWvA.mp4' },
-            { title: '2024年高考物理山东卷视频讲解', url: 'https://raw.githubusercontent.com/91plus/111/main/6s3kUX-mG9JNy_T3.mp4' },
-            { title: '2024年高考化学山东卷视频讲解', url: 'https://raw.githubusercontent.com/91plus/111/main/83CQ68qVvYg_WeFS.mp4' },
-            { title: '2024年高考生物山东卷视频讲解', url: 'https://raw.githubusercontent.com/91plus/111/main/BKi99xgpevUtORXK.mp4' },
-            { title: '2024年高考历史山东卷视频讲解', url: 'https://raw.githubusercontent.com/91plus/111/main/LmsQ2pwn2MA-9W6W.mp4' },
-            { title: '2024年高考政治山东卷视频讲解', url: 'https://raw.githubusercontent.com/91plus/111/main/QuLhKbN5-SPO2OG3.mp4' },
-            { title: '2024年高考地理山东卷视频讲解', url: 'https://raw.githubusercontent.com/91plus/111/main/SfwFfNjCrRUfrvBu.mp4' }
-        ];
-        function loadInitialProducts() {
-            const container = document.getElementById('product-container');
-            productList.forEach(product => {
-                const productElement = createProductElement(product);
-                container.appendChild(productElement);
-            });
-        }
-        function createProductElement(product) {
-            const productDiv = document.createElement('div');
-            productDiv.classList.add('product');
-            productDiv.innerHTML = `
-                <h2>${product.title}</h2>
-                <button onclick="playVideo('${product.url}')">观看</button>
-            `;
-            return productDiv;
-        }
-        function setupInfiniteScroll() {
-            window.addEventListener('scroll', () => {
-                if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 50) {
-                    loadMoreProducts();
+    function sendMessage() {
+      var userInput = document.getElementById("user-input").value.trim();
+      if (userInput === '') return;
+      appendMessage("You", userInput);
+      conversation.push({
+        role: "user",
+        content: userInput,
+        sequence: sequence,
+      });
+      sequence++;
+      var requestOptions = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer d2bedb706c94cbaeb143cd2a3c8ba962.swIjaw6UKRUQUhlj",  
+        },
+        body: JSON.stringify({
+          model: selectedModel,
+          messages: conversation,
+          stream: true,
+          temperature: 0.5,
+          max_tokens: 160000,
+        }),
+      };    
+      fetch("https://open.bigmodel.cn/api/paas/v4/chat/completions", requestOptions)
+        .then(response => {
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let botResponse = '';
+          appendMessage("AI", ""); 
+          function read() {
+            reader.read().then(({ done, value }) => {
+              if (done) {
+                conversation.push({
+                  role: "assistant",
+                  content: botResponse,
+                });
+                return;
+              }
+              const chunk = decoder.decode(value, { stream: true });
+              const lines = chunk.split('\n');
+              for (let line of lines) {
+                if (line.trim().startsWith('data: ')) {
+                  const json = JSON.parse(line.slice(6));
+                  if (json.choices && json.choices.length > 0 && json.choices[0].delta && json.choices[0].delta.content) {
+                    botResponse += json.choices[0].delta.content;
+                    updateLatestMessage(botResponse);
+                  }
                 }
+              }
+              read();
             });
-        }
-        function loadMoreProducts() {
-            const container = document.getElementById('product-container');
-            productList.forEach(product => {
-                const productElement = createProductElement(product);
-                container.appendChild(productElement);
-            });
-        }
-    </script>
+          }
+          read();
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          appendErrorMessage("Error: " + error);
+        });
+      document.getElementById("user-input").value = "";
+    }
+
+    function updateLatestMessage(text) {
+      var chatBox = document.getElementById("chat-box");
+      var latestMessage = chatBox.querySelector(".bot:last-child .message");
+      if (latestMessage) {
+        latestMessage.innerHTML = marked.parse(text);
+        addPreviewButton(latestMessage, text);
+      }
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function appendMessage(sender, message) {
+      var chatBox = document.getElementById("chat-box");
+      var messageDiv = document.createElement("div");
+      messageDiv.className = sender === "You" ? "user" : "bot";
+      var messageContent = `<div class="message">${sender === "You" ? message : marked.parse(message)}</div>`;
+      messageDiv.innerHTML = messageContent;
+      chatBox.appendChild(messageDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function addPreviewButton(messageElement, text) {
+      var previewButton = document.createElement("button");
+      previewButton.className = "preview-button";
+      previewButton.innerText = "Preview";
+      previewButton.onclick = function() {
+        openPreviewWindow(messageElement, text);
+      };
+      messageElement.appendChild(previewButton);
+
+      var cancelPreviewButton = document.createElement("button");
+      cancelPreviewButton.className = "cancel-preview-button";
+      cancelPreviewButton.innerText = "Cancel Preview";
+      cancelPreviewButton.onclick = function() {
+        closePreviewWindow(messageElement);
+      };
+      messageElement.appendChild(cancelPreviewButton);
+    }
+
+    function openPreviewWindow(messageElement, text) {
+      var previewWindow = document.createElement("div");
+      previewWindow.className = "preview-window";
+      
+      // 只提取代码块部分
+      var codeBlockMatch = text.match(/```html\s*([\s\S]*?)\s*```/);
+      var codeContent = codeBlockMatch ? codeBlockMatch[1] : '';
+      
+      // Ensure text is properly escaped
+      var escapedText = codeContent.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+      
+      // Create iframe and set srcdoc property
+      previewWindow.innerHTML = `<iframe srcdoc="${escapedText}"></iframe>`;
+      messageElement.appendChild(previewWindow);
+    }
+
+    function closePreviewWindow(messageElement) {
+      var previewWindow = messageElement.querySelector(".preview-window");
+      if (previewWindow) {
+        messageElement.removeChild(previewWindow);
+      }
+    }
+
+    function appendErrorMessage(message) {
+      var chatBox = document.getElementById("chat-box");
+      var errorDiv = document.createElement("div");
+      errorDiv.className = "error";
+      errorDiv.innerHTML = "<strong>Error:</strong> " + message;
+      chatBox.appendChild(errorDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function deleteMessages() {
+      var chatBox = document.getElementById("chat-box");
+      chatBox.innerHTML = '';
+      conversation = [];
+      sequence = 1;
+    }
+
+    function changeModel() {
+      selectedModel = document.getElementById('model-options').value;
+    }
+
+    function closeModal() {
+      var modal = document.getElementById('welcome-modal');
+      modal.style.display = 'none';
+    }
+
+    document.getElementById("user-input").addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        sendMessage();
+      }
+    });
+
+    window.onload = function() {
+      var modal = document.getElementById('welcome-modal');
+      modal.style.display = 'flex';
+    };
+  </script>
 </body>
 </html>
