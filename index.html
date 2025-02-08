@@ -1,242 +1,1323 @@
-<!DOCTYPE html> 
-<html lang="en"> 
-<head> 
-    <meta charset="UTF-8"> 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <title>WWZ Stream Player</title> 
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script> 
-    <style> 
-        body { 
-            font-family: 'Roboto', sans-serif; 
-            margin: 0; 
-            padding: 0; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            min-height: 100vh; 
-            background: linear-gradient(135deg, #ffffff, #e0e0e0); 
-            color: #333; 
-        } 
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>中国天地银行 - 世界的银行</title>
+  <style>
+    /* 基础重置 */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background: #f5f6fa;
+      line-height: 1.6;
+    }
+    /* 容器样式 */
+    .container {
+      max-width: 100%;
+      padding: 20px;
+      margin: 0 auto;
+    }
+    /* 登录页面 */
+    .login-container,
+    .divine-login-container {
+      background: white;
+      border-radius: 15px;
+      padding: 2rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+      margin: 2rem auto;
+      text-align: center;
+    }
+    .login-header {
+      margin-bottom: 2rem;
+      color: #2c3e50;
+    }
+    .button {
+      padding: 0.8rem 1.2rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin: 0.5rem;
+    }
+    .button-primary { background: #3498db; color: white; }
+    .button-success { background: #2ecc71; color: white; }
+    .button-danger  { background: #e74c3c; color: white; }
+    .button-warning { background: #f39c12; color: white; }
+    .button-info    { background: #1abc9c; color: white; }
+    /* 钱包主界面 */
+    .wallet-container {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 1.5rem;
+      max-width: 800px;
+      margin: 1rem auto;
+    }
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .info-text {
+      margin-top: 0.5rem;
+      font-size: 1.1rem;
+      color: #8e44ad;
+      text-align: center;
+    }
+    .balance-card {
+      background: linear-gradient(135deg, #3498db, #2980b9);
+      color: white;
+      padding: 2rem;
+      border-radius: 12px;
+      margin: 1.5rem 0;
+      text-align: center;
+    }
+    .balance-amount {
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin: 1rem 0;
+    }
+    /* 按钮组 */
+    .button-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+    /* 交易记录 */
+    #transactions-container {
+      margin-top: 1.5rem;
+    }
+    .transaction-table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow-x: auto;
+      display: block;
+    }
+    .transaction-table th,
+    .transaction-table td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #ecf0f1;
+    }
+    .transaction-table th {
+      background: #f8f9fa;
+      color: #2c3e50;
+    }
+    /* 弹出层 */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px;
+      position: relative;
+    }
+
+    #my-goods-modal .modal-content {
+      max-height: 80vh;
+      overflow-y: auto;
+      position: relative;
+    }
+    #my-goods-modal .modal-close {
+      position: sticky;
+      top: 0;
+      background: white;
+      z-index: 10;
+    }
+    .modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    /* 输入组 */
+    .input-group {
+      margin-bottom: 1.5rem;
+    }
+    .input-label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: #2c3e50;
+    }
+    .input-field {
+      width: 100%;
+      padding: 0.8rem;
+      border: 1px solid #bdc3c7;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+      margin-bottom: 0.5rem;
+    }
+    .input-field:focus {
+      outline: none;
+      border-color: #3498db;
+    }
+    /* 加载动画 */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    /* 神职人员功能界面 */
+    .divine-dashboard {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      padding: 1.5rem;
+      max-width: 800px;
+      margin: 1rem auto;
+    }
+    .divine-section {
+      display: none;
+      margin-top: 1rem;
+    }
+    .divine-header {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      text-align: center;
+      color: #2c3e50;
+    }
+    /* 阎王板块内表单样式 */
+    #yanwang-dashboard input.input-field,
+    #yanwang-dashboard select.input-field {
+      margin-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- 用户登录页面 -->
+  <div id="login-page" class="container">
+    <div class="login-container">
+      <h2 class="login-header">🔐 中国天地银行登录</h2>
+      <div class="input-group">
+        <input type="text" class="input-field" id="username" placeholder="请输入您的姓名" required>
+      </div>
+      <div class="input-group">
+        <input type="password" class="input-field" id="password" placeholder="请输入您的密码" required>
+      </div>
+      <button class="button button-primary" onclick="login()">登录</button>
+      <br>
+      <button class="button button-info" onclick="document.getElementById('login-page').style.display='none';document.getElementById('divine-login-page').style.display='block';">神职人员登录</button>
+    </div>
+  </div>
+
+  <!-- 钱包主界面 -->
+  <div id="wallet-page" class="container" style="display: none;">
+    <div class="wallet-container">
+      <!-- 头部 -->
+      <div class="header-bar">
+        <h2>💰 中国天地银行</h2>
+        <button class="button button-danger" onclick="logout()">退出登录</button>
+      </div>
+      <div class="info-text">中国天地银行，亿万年信誉保证</div>
+       
+      <!-- 余额卡片 -->
+      <div class="balance-card">
+        <div>当前余额</div>
+        <div class="balance-amount" id="balance-amount">$0.00</div>
+        <div>人民币 (CNY)</div>
+      </div>
+      <!-- 显示功德 -->
+      <div class="info-text">功德：<span id="merit-value">0</span></div>
  
-        h1 { 
-            margin-bottom: 20px; 
-            font-size: 24px; 
-            color: #4caf50; 
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); 
-        } 
- 
-        #player-container { 
-            width: 90%; 
-            max-width: 800px; 
-            background: rgba(255, 255, 255, 0.8); 
-            border-radius: 15px; 
-            overflow: hidden; 
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2); 
-            backdrop-filter: blur(10px); 
-            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out; 
-            opacity: 1; 
-        } 
- 
-        #player-container.hidden { 
-            transform: translateY(-20px); 
-            opacity: 0; 
-        } 
- 
-        video { 
-            width: 100%; 
-            height: auto; 
-            outline: none; 
-        } 
- 
-        #channel-toggle { 
-            position: fixed; 
-            top: 20px; 
-            right: 20px; 
-            padding: 12px 20px; 
-            background: linear-gradient(135deg, #4caf50, #2e7d32); 
-            color: #fff; 
-            border: none; 
-            border-radius: 25px; 
-            cursor: pointer; 
-            font-size: 16px; 
-            font-weight: bold; 
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); 
-            transition: background 0.3s ease, transform 0.2s ease; 
-        } 
- 
-        #channel-toggle:hover { 
-            background: linear-gradient(135deg, #2e7d32, #4caf50); 
-            transform: scale(1.05); 
-        } 
- 
-        #channel-menu { 
-            position: fixed; 
-            top: 80px; 
-            right: 20px; 
-            background: rgba(255, 255, 255, 0.9); 
-            color: #333; 
-            border-radius: 15px; 
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); 
-            padding: 15px; 
-            display: none; 
-            flex-direction: column; 
-            gap: 15px; 
-            z-index: 1000; 
-            width: 250px; 
-            backdrop-filter: blur(10px); 
-            max-height: 60vh; 
-            overflow-y: auto; 
-        } 
- 
-        .channel-button { 
-            padding: 12px 20px; 
-            background: linear-gradient(135deg, #f5f5f5, #e0e0e0); 
-            color: #333; 
-            border: none; 
-            border-radius: 25px; 
-            cursor: pointer; 
-            font-size: 14px; 
-            font-weight: bold; 
-            transition: background-color 0.3s ease, transform 0.2s ease; 
-            text-align: center; 
-        } 
- 
-        .channel-button:hover { 
-            background: linear-gradient(135deg, #eeeeee, #dddddd); 
-            transform: translateY(-3px); 
-        } 
- 
-        .channel-button.active { 
-            background: linear-gradient(135deg, #4caf50, #2e7d32); 
-            color: #fff; 
-        } 
- 
-        @media (max-width: 768px) { 
-            #player-container { 
-                width: 100%; 
-            } 
- 
-            #channel-menu { 
-                width: 200px; 
-            } 
- 
-            #channel-toggle { 
-                padding: 10px 15px; 
-                font-size: 14px; 
-            } 
- 
-            .channel-button { 
-                padding: 10px 15px; 
-                font-size: 12px; 
-            } 
-        } 
-    </style> 
-</head> 
-<body> 
-    <h1>WWZ Stream Player</h1> 
-    <div id="player-container"> 
-        <video id="video" controls autoplay></video> 
-    </div> 
- 
-    <button id="channel-toggle">Channels</button> 
-    <div id="channel-menu"> 
-        <!-- Channel buttons will be dynamically added here --> 
-    </div> 
- 
-    <script> 
-        document.addEventListener('DOMContentLoaded', () => { 
-            const video = document.getElementById('video'); 
-            const playerContainer = document.getElementById('player-container'); 
-            const channelMenu = document.getElementById('channel-menu'); 
-            const channelToggle = document.getElementById('channel-toggle'); 
- 
-            // Array of channels 
-            const channels = [ 
-                { name: "学习1线", url: "https://cdn.adultiptv.net/bigass.m3u8" },
-                { name: "学习2线", url: "https://cdn.adultiptv.net/anal.m3u8" },
-                { name: "学习3线", url: "https://cdn.adultiptv.net/asian.m3u8" },
-                { name: "学习4线", url: "https://cdn.adultiptv.net/bigdick.m3u8" },
-                { name: "学习5线", url: "https://cdn.adultiptv.net/bigtits.m3u8" },
-                { name: "学习6线", url: "https://cdn.adultiptv.net/blonde.m3u8" },
-                { name: "学习7线", url: "https://cdn.adultiptv.net/blowjob.m3u8" },
-                { name: "学习8线", url: "https://cdn.adultiptv.net/brunette.m3u8" },
-                { name: "学习9线", url: "https://cdn.adultiptv.net/compilation.m3u8" },
-                { name: "学习10线", url: "https://cdn.adultiptv.net/cuckold.m3u8" },
-                { name: "学习11线", url: "https://cdn.adultiptv.net/fetish.m3u8" },
-                { name: "学习12线", url: "https://cdn.adultiptv.net/gangbang.m3u8" },
-                { name: "学习13线", url: "https://cdn.adultiptv.net/gay.m3u8" },
-                { name: "学习14线", url: "https://cdn.adultiptv.net/hardcore.m3u8" },
-                { name: "学习15线", url: "https://cdn.adultiptv.net/interracial.m3u8" },
-                { name: "学习16线", url: "https://cdn.adultiptv.net/lesbian.m3u8" },
-                { name: "学习17线", url: "https://cdn.adultiptv.net/livecams.m3u8" },
-                { name: "学习18线", url: "https://cdn.adultiptv.net/milf.m3u8" },
-                { name: "学习19线", url: "https://cdn.adultiptv.net/pornstar.m3u8" },
-                { name: "学习20线", url: "https://cdn.adultiptv.net/pov.m3u8" },
-                { name: "学习21线", url: "https://cdn.adultiptv.net/russian.m3u8" },
-                { name: "学习22线", url: "https://video1.rhsj520.com/nyrm3/2011225/DR/n0011/index.m3u8" },
-                { name: "学习23线", url: "https://vip4.ddyunbo.com/20210208/6LaKp6lZ/index.m3u8" },
-                { name: "学习24线", url: "http://live.redtraffic.xyz/threesome.m3u8?fluxuslust.m3u8" }
-            ]; 
- 
-            let currentChannelIndex = 0; 
- 
-            // Function to play a channel 
-            function playChannel(index) { 
-                const channel = channels[index]; 
-                if (!channel) return; 
- 
-                currentChannelIndex = index; 
- 
-                // Highlight active channel 
-                document.querySelectorAll('.channel-button').forEach((button, idx) => { 
-                    button.classList.toggle('active', idx === index); 
-                }); 
- 
-                // Load video source 
-                if (Hls.isSupported()) { 
-                    const hls = new Hls(); 
-                    hls.loadSource(channel.url); 
-                    hls.attachMedia(video); 
-                    hls.on(Hls.Events.MANIFEST_PARSED, () => { 
-                        video.play(); 
-                    }); 
-                } else if (video.canPlayType('application/vnd.apple.mpegurl')) { 
-                    video.src = channel.url; 
-                    video.addEventListener('loadedmetadata', () => { 
-                        video.play(); 
-                    }); 
-                } else { 
-                    alert('Your browser does not support this video stream!'); 
-                } 
- 
-                // Animate player container 
-                playerContainer.classList.remove('hidden'); 
-            } 
- 
-            // Generate channel buttons 
-            channels.forEach((channel, index) => { 
-                const button = document.createElement('button'); 
-                button.textContent = channel.name; 
-                button.className = 'channel-button'; 
-                button.addEventListener('click', () => { 
-                    playChannel(index); 
-                    channelMenu.style.display = 'none'; 
-                }); 
-                channelMenu.appendChild(button); 
-            }); 
- 
-            // Ensure scrollability for many channels 
-            channelMenu.style.overflowY = 'auto'; 
- 
-            // Toggle channel menu visibility 
-            channelToggle.addEventListener('click', () => { 
-                channelMenu.style.display = channelMenu.style.display === 'none' || channelMenu.style.display === '' ? 'flex' : 'none'; 
-            }); 
- 
-            // Play the first channel by default 
-            playChannel(currentChannelIndex); 
-        }); 
-    </script> 
-</body> 
+      <!-- 操作按钮 -->
+      <div class="button-group">
+        <button class="button button-success" onclick="openModal('recharge-modal')">充值</button>
+        <button class="button button-primary" onclick="openModal('payment-modal')">支付</button>
+        <button class="button button-primary" onclick="openModal('transfer-modal')">转账</button>
+        <button class="button button-warning" onclick="openModal('three-realm-modal')">三界转账</button>
+        <button class="button button-danger" onclick="openModal('next-life-modal')">跨世转账</button>
+        <button class="button button-primary" onclick="openModal('six-path-modal')">六道轮回</button>
+        <button class="button button-warning" onclick="openModal('divination-modal')">天命抽签</button>
+        <button class="button button-info" onclick="openModal('talisman-modal')">符箓购买</button>
+        <button class="button button-danger" onclick="openModal('pill-modal')">丹药炼制</button>
+        <button class="button button-success" onclick="openModal('offering-modal')">供佛</button>
+        <button class="button button-info" onclick="openModal('chanting-modal')">经典诵经</button>
+        <button class="button button-info" onclick="openModal('my-goods-modal')">我的商品</button>
+      </div>
+       
+      <!-- 交易记录操作按钮 -->
+      <div style="display: flex; gap: 1rem; margin-bottom:1rem;">
+        <button class="button button-primary" onclick="toggleTransactions()">折叠/展开交易记录</button>
+        <button class="button button-danger" onclick="clearTransactions()">删除所有交易记录</button>
+      </div>
+       
+      <!-- 交易记录 -->
+      <div id="transactions-container">
+        <h3>📋 交易记录</h3>
+        <table class="transaction-table">
+          <thead>
+            <tr>
+              <th>时间</th>
+              <th>类型</th>
+              <th>金额</th>
+              <th>余额</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="transaction-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 神职人员登录页面 -->
+  <div id="divine-login-page" class="container" style="display: none;">
+    <div class="divine-login-container">
+      <h2 class="login-header">👑 神职人员登录</h2>
+      <div class="input-group">
+        <label class="input-label" for="divine-role">请选择神职人员身份</label>
+        <select class="input-field" id="divine-role">
+          <option value="酆都大帝">酆都大帝</option>
+          <option value="黑白无常">黑白无常</option>
+          <option value="孟婆">孟婆</option>
+          <option value="阎王">阎王</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <input type="password" class="input-field" id="divine-password" placeholder="请输入密码">
+      </div>
+      <button class="button button-primary" onclick="divineLogin()">登录</button>
+      <br>
+      <button class="button button-danger" onclick="document.getElementById('divine-login-page').style.display='none';document.getElementById('login-page').style.display='block';">返回用户登录</button>
+    </div>
+  </div>
+
+  <!-- 神职人员功能界面 -->
+  <div id="divine-dashboard" class="container divine-dashboard" style="display: none;">
+    <div class="header-bar">
+      <h2>👑 神职人员功能界面</h2>
+      <button class="button button-danger" onclick="divineLogout()">退出登录</button>
+    </div>
+    <!-- 酆都大帝界面 -->
+    <div id="fengdu-dashboard" class="divine-section">
+      <h3 class="divine-header">酆都大帝 - 生死簿</h3>
+      <button class="button button-primary" onclick="refreshLifeDeathRegister()">刷新生死簿</button>
+      <table class="transaction-table">
+        <thead>
+          <tr>
+            <th>序号</th>
+            <th>姓名</th>
+            <th>状态</th>
+            <th>时间</th>
+          </tr>
+        </thead>
+        <tbody id="life-death-body"></tbody>
+      </table>
+      <div style="margin-top:1rem;">
+        <button class="button button-info" onclick="printLifeDeathRegister()">打印生死簿</button>
+        <div id="fengdu-stats"></div>
+      </div>
+    </div>
+    <!-- 黑白无常界面 -->
+    <div id="heibai-dashboard" class="divine-section">
+      <h3 class="divine-header">黑白无常 - 任务面板</h3>
+      <button class="button button-primary" onclick="catchPerson()">抓人</button>
+      <p id="heibai-result" style="margin-top:1rem; font-weight:bold; text-align:center;"></p>
+      <div style="margin-top:1rem;">
+        <h4>抓捕历史</h4>
+        <button class="button button-danger" onclick="clearHeibaiHistory()">清空抓捕历史</button>
+        <table class="transaction-table">
+          <thead>
+            <tr>
+              <th>序号</th>
+              <th>姓名</th>
+              <th>时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="heibai-history-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <!-- 孟婆界面 -->
+    <div id="mengpo-dashboard" class="divine-section">
+      <h3 class="divine-header">孟婆 - 孟婆汤服务</h3>
+      <button class="button button-primary" onclick="serveMengPoSoup()">倒孟婆汤</button>
+      <p id="mengpo-result" style="margin-top:1rem; font-weight:bold; text-align:center;"></p>
+      <div style="margin-top:1rem;">
+        <h4>消除记忆记录</h4>
+        <button class="button button-danger" onclick="clearLostMemories()">清空记忆记录</button>
+        <table class="transaction-table">
+          <thead>
+            <tr>
+              <th>序号</th>
+              <th>记忆</th>
+              <th>时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="lost-memories-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <!-- 阎王界面 -->
+    <div id="yanwang-dashboard" class="divine-section">
+      <h3 class="divine-header">阎王 - 生死管理</h3>
+      <div style="margin-bottom: 1rem;">
+        <input type="text" id="yanwang-name" class="input-field" placeholder="请输入姓名">
+        <select id="yanwang-fate" class="input-field">
+          <option value="生">生</option>
+          <option value="死">死</option>
+        </select>
+        <input type="text" id="yanwang-time" class="input-field" placeholder="请输入生死时间">
+        <input type="text" id="yanwang-remarks" class="input-field" placeholder="请输入备注（可选）">
+        <button class="button button-primary" onclick="addYanwangRecord()">添加记录</button>
+      </div>
+      <!-- 搜索/过滤控件 -->
+      <div style="margin-bottom: 1rem;">
+        <input type="text" id="yanwang-search" class="input-field" placeholder="搜索姓名">
+        <select id="yanwang-filter" class="input-field">
+          <option value="全部">全部</option>
+          <option value="生">生</option>
+          <option value="死">死</option>
+        </select>
+        <button class="button button-primary" onclick="renderYanwangRegister()">搜索</button>
+      </div>
+      <table class="transaction-table">
+        <thead>
+          <tr>
+            <th>序号</th>
+            <th>姓名</th>
+            <th>状态</th>
+            <th>时间</th>
+            <th>备注</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="yanwang-register-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+
+
+  <!-- 充值弹窗 -->
+  <div id="recharge-modal" class="modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('recharge-modal')">&times;</button>
+      <h3>💰 账户充值</h3>
+      <div class="input-group">
+        <input type="number" class="input-field" id="recharge-amount" placeholder="请输入充值金额" min="0">
+      </div>
+      <div class="input-group">
+        <input type="password" class="input-field" id="recharge-password" placeholder="请输入安全密码">
+      </div>
+      <button class="button button-success" onclick="processRecharge()">确认充值</button>
+    </div>
+  </div>
+
+  <!-- 支付弹窗 -->
+  <div id="payment-modal" class="modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('payment-modal')">&times;</button>
+      <h3>💳 发起支付</h3>
+      <div class="input-group">
+        <input type="text" class="input-field" id="payment-card" placeholder="收款方银行卡号">
+      </div>
+      <div class="input-group">
+        <input type="number" class="input-field" id="payment-amount" placeholder="支付金额" min="0">
+      </div>
+      <div class="input-group">
+        <input type="password" class="input-field" id="payment-password" placeholder="安全密码">
+      </div>
+      <button class="button button-primary" onclick="processPayment()">确认支付</button>
+    </div>
+  </div>
+
+  <!-- 转账弹窗 -->
+  <div id="transfer-modal" class="modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('transfer-modal')">&times;</button>
+      <h3>↔️ 账户转账</h3>
+      <div class="input-group">
+        <input type="text" class="input-field" id="transfer-card" placeholder="收款方银行卡号">
+      </div>
+      <div class="input-group">
+        <input type="number" class="input-field" id="transfer-amount" placeholder="转账金额" min="0">
+      </div>
+      <div class="input-group">
+        <input type="password" class="input-field" id="transfer-password" placeholder="安全密码">
+      </div>
+      <button class="button button-primary" onclick="processTransfer()">确认转账</button>
+    </div>
+  </div>
+
+  <!-- 三界转账弹窗 -->
+  <div id="three-realm-modal" class="modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('three-realm-modal')">&times;</button>
+      <h3>🌌 三界转账</h3>
+      <div class="input-group">
+        <label class="input-label" for="three-realm-target">转入界域</label>
+        <select class="input-field" id="three-realm-target">
+          <option value="天界">天界</option>
+          <option value="人间">人间</option>
+          <option value="冥界">冥界</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <input type="number" class="input-field" id="three-realm-amount" placeholder="请输入转账金额" min="0">
+      </div>
+      <div class="input-group">
+        <input type="password" class="input-field" id="three-realm-password" placeholder="请输入安全密码">
+      </div>
+      <button class="button button-warning" onclick="processThreeRealmTransfer()">确认转账</button>
+    </div>
+  </div>
+
+  <!-- 跨世转账弹窗 -->
+  <div id="next-life-modal" class="modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('next-life-modal')">&times;</button>
+      <h3>🔮 跨世转账</h3>
+      <div class="input-group">
+        <input type="number" class="input-field" id="next-life-amount" placeholder="请输入转账金额" min="0">
+      </div>
+      <div class="input-group">
+        <input type="password" class="input-field" id="next-life-password" placeholder="请输入安全密码">
+      </div>
+      <button class="button button-danger" onclick="processNextLifeTransfer()">确认转账</button>
+    </div>
+  </div>
+
+  <!-- 六道轮回查询弹窗 -->
+  <div id="six-path-modal" class="modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('six-path-modal')">&times;</button>
+      <h3>♾️ 六道轮回查询</h3>
+      <p id="six-path-result" style="margin-bottom:1rem; font-weight:bold; text-align:center;"></p>
+      <button class="button button-primary" onclick="processSixPathQuery()">查询</button>
+    </div>
+  </div>
+
+  <!-- 天命抽签弹窗 -->
+  <div id="divination-modal" class="modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('divination-modal')">&times;</button>
+      <h3>🔮 天命抽签</h3>
+      <p style="font-size:0.9rem; margin-bottom:1rem;">（抽签需预扣最低 $12 以防凶签扣款）</p>
+      <button class="button button-warning" onclick="processDivination()">抽签</button>
+      <p id="divination-result" style="margin-top:1rem; font-weight:bold; text-align:center;"></p>
+    </div>
+  </div>
+
+  <!-- 符箓购买弹窗 -->
+  <div id="talisman-modal" class="modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('talisman-modal')">&times;</button>
+      <h3>🀄 符箓购买</h3>
+      <div class="input-group">
+        <label class="input-label" for="talisman-type">请选择符箓类型</label>
+        <select class="input-field" id="talisman-type">
+          <option value="30">平安符 ($30)</option>
+          <option value="40">辟邪符 ($40)</option>
+          <option value="50">求财符 ($50)</option>
+          <option value="35">求健康符 ($35)</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <input type="password" class="input-field" id="talisman-password" placeholder="请输入安全密码">
+      </div>
+      <button class="button button-info" onclick="processTalismanPurchase()">确认购买</button>
+    </div>
+  </div>
+
+  <!-- 丹药炼制弹窗 -->
+  <div id="pill-modal" class="modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('pill-modal')">&times;</button>
+      <h3>⚗️ 丹药炼制</h3>
+      <div class="input-group">
+        <input type="number" class="input-field" id="pill-amount" placeholder="请输入炼丹投入金额" min="0">
+      </div>
+      <div class="input-group">
+        <input type="password" class="input-field" id="pill-password" placeholder="请输入安全密码">
+      </div>
+      <button class="button button-danger" onclick="processPillRefinement()">炼制丹药</button>
+    </div>
+  </div>
+
+
+  <div id="offering-modal" class="modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('offering-modal')">&times;</button>
+      <h3>🙏 供佛</h3>
+      <div class="input-group">
+        <label class="input-label" for="offering-deity">请选择供佛对象</label>
+        <select class="input-field" id="offering-deity">
+          <option value="释迦牟尼佛">释迦牟尼佛</option>
+          <option value="观音菩萨">观音菩萨</option>
+          <option value="文殊菩萨">文殊菩萨</option>
+          <option value="普贤菩萨">普贤菩萨</option>
+          <option value="地藏王菩萨">地藏王菩萨</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label class="input-label" for="offering-method">请选择供养方式</label>
+        <select class="input-field" id="offering-method">
+          <option value="供花">供花</option>
+          <option value="供灯">供灯</option>
+          <option value="供斋">供斋</option>
+          <option value="供香">供香</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <input type="number" class="input-field" id="offering-amount" placeholder="请输入供佛金额" min="0">
+      </div>
+      <div class="input-group">
+        <input type="password" class="input-field" id="offering-password" placeholder="请输入安全密码">
+      </div>
+      <button class="button button-success" onclick="processOffering()">确认供佛</button>
+    </div>
+  </div>
+
+  <!-- 诵经计时弹窗（采用开始/暂停切换） -->
+  <div id="chanting-modal" class="modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('chanting-modal')">&times;</button>
+      <h3>📿 经典诵经</h3>
+      <p>点击下方按钮开始诵经，每10秒自动增加5功德，直至手动暂停。</p>
+      <button class="button button-info" id="toggle-chanting" onclick="toggleChanting()">开始诵经</button>
+      <p id="chanting-result" style="margin-top:1rem; font-weight:bold; text-align:center;"></p>
+    </div>
+  </div>
+
+  <!-- 我的商品弹窗 -->
+  <div id="my-goods-modal" class="modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('my-goods-modal')">&times;</button>
+      <h3>🛍️ 我的商品</h3>
+      <table class="transaction-table">
+        <thead>
+          <tr>
+            <th>时间</th>
+            <th>商品名称</th>
+            <th>价格</th>
+          </tr>
+        </thead>
+        <tbody id="goods-body"></tbody>
+      </table>
+      <button class="button button-primary" onclick="closeModal('my-goods-modal')">关闭</button>
+    </div>
+  </div>
+
+  <!-- 加载动画 -->
+  <div class="loading-overlay" id="loading">
+    <div class="loading-spinner"></div>
+  </div>
+
+  <script>
+    // 全局数据：余额、交易记录、已购商品、功德值
+    let currentUser = null;
+    let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+    let balance = parseFloat(localStorage.getItem('balance')) || 0;
+    let purchasedItems = JSON.parse(localStorage.getItem('purchasedItems')) || [];
+    let merit = parseFloat(localStorage.getItem('merit')) || 0;
+    let chantingInterval = null; // 诵经定时器
+    let currentDivineRole = null; // 当前神职人员角色
+    let lifeDeathRegister = []; // 酆都大帝生死簿数据
+    let yanwangRegister = [];   // 阎王手动管理的生死记录
+    let heibaiHistory = [];      // 黑白无常抓捕历史
+    let lostMemories = [];       // 孟婆记录的消除记忆
+
+    // 神职人员默认密码
+    const divineCredentials = {
+      "酆都大帝": "fengdu",
+      "黑白无常": "heibai",
+      "孟婆": "mengpo",
+      "阎王": "yanwang"
+    };
+
+    window.onload = () => {
+      updateBalanceDisplay();
+      renderTransactions();
+      renderPurchasedItems();
+    };
+
+    // 用户登录
+    function login() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      if (username.trim() === "" || password.trim() === "") {
+        alert('请输入有效的用户名和密码');
+        return;
+      }
+      currentUser = { username, password };
+      document.getElementById('login-page').style.display = 'none';
+      document.getElementById('wallet-page').style.display = 'block';
+    }
+
+    // 用户登出
+    function logout() {
+      currentUser = null;
+      document.getElementById('wallet-page').style.display = 'none';
+      document.getElementById('login-page').style.display = 'block';
+    }
+
+    // 神职人员登录
+    function divineLogin() {
+      const roleSelect = document.getElementById('divine-role');
+      const role = roleSelect.value;
+      const password = document.getElementById('divine-password').value;
+      if (password !== divineCredentials[role]) {
+        alert('密码错误');
+        return;
+      }
+      currentDivineRole = role;
+      document.getElementById('divine-login-page').style.display = 'none';
+      document.getElementById('divine-dashboard').style.display = 'block';
+      renderDivineDashboard();
+    }
+
+    // 神职人员登出
+    function divineLogout() {
+      currentDivineRole = null;
+      document.getElementById('divine-dashboard').style.display = 'none';
+      document.getElementById('divine-login-page').style.display = 'block';
+    }
+
+    // 神职人员功能界面渲染
+    function renderDivineDashboard() {
+      // 隐藏所有子界面
+      document.getElementById('fengdu-dashboard').style.display = 'none';
+      document.getElementById('heibai-dashboard').style.display = 'none';
+      document.getElementById('mengpo-dashboard').style.display = 'none';
+      document.getElementById('yanwang-dashboard').style.display = 'none';
+      if (currentDivineRole === "酆都大帝") {
+        document.getElementById('fengdu-dashboard').style.display = 'block';
+        refreshLifeDeathRegister();
+      } else if (currentDivineRole === "黑白无常") {
+        document.getElementById('heibai-dashboard').style.display = 'block';
+        renderHeibaiHistory();
+      } else if (currentDivineRole === "孟婆") {
+        document.getElementById('mengpo-dashboard').style.display = 'block';
+        renderLostMemories();
+      } else if (currentDivineRole === "阎王") {
+        document.getElementById('yanwang-dashboard').style.display = 'block';
+        renderYanwangRegister();
+      }
+    }
+
+    // 更新本地存储及显示
+    function updateStorage() {
+      localStorage.setItem('balance', balance);
+      localStorage.setItem('transactions', JSON.stringify(transactions));
+      localStorage.setItem('purchasedItems', JSON.stringify(purchasedItems));
+      localStorage.setItem('merit', merit);
+      updateBalanceDisplay();
+      renderTransactions();
+      renderPurchasedItems();
+    }
+
+    function updateBalanceDisplay() {
+      document.getElementById('balance-amount').textContent = `$${balance.toFixed(2)}`;
+      document.getElementById('merit-value').textContent = merit.toFixed(2);
+    }
+
+    function addTransaction(type, amount, balanceAfter) {
+      const transaction = {
+        date: new Date().toLocaleString(),
+        type: type,
+        amount: amount.toFixed(2),
+        balance: balanceAfter.toFixed(2)
+      };
+      transactions.push(transaction);
+    }
+
+    function renderTransactions() {
+      const tbody = document.getElementById('transaction-body');
+      tbody.innerHTML = transactions.map((t, index) => `
+        <tr>
+          <td>${t.date}</td>
+          <td>${t.type}</td>
+          <td>${t.amount}</td>
+          <td>${t.balance}</td>
+          <td><button class="button button-danger" onclick="deleteTransaction(${index})">删除</button></td>
+        </tr>
+      `).join('');
+    }
+
+    // 删除单个交易记录
+    function deleteTransaction(index) {
+      if (confirm("确定要删除此交易记录吗？")) {
+        transactions.splice(index, 1);
+        updateStorage();
+      }
+    }
+
+    function toggleTransactions() {
+      const container = document.getElementById('transactions-container');
+      container.style.display = (container.style.display === 'none') ? 'block' : 'none';
+    }
+
+    function clearTransactions() {
+      if (confirm("确定要删除所有交易记录吗？此操作不可恢复。")) {
+        transactions = [];
+        updateStorage();
+        alert("交易记录已清空。");
+      }
+    }
+
+    function renderPurchasedItems() {
+      const tbody = document.getElementById('goods-body');
+      tbody.innerHTML = purchasedItems.map(item => `
+        <tr>
+          <td>${item.date}</td>
+          <td>${item.name}</td>
+          <td>$${parseFloat(item.price).toFixed(2)}</td>
+        </tr>
+      `).join('');
+    }
+
+    function showLoading() {
+      document.getElementById('loading').style.display = 'flex';
+    }
+
+    function hideLoading() {
+      document.getElementById('loading').style.display = 'none';
+    }
+
+    // 处理充值
+    function processRecharge() {
+      const amount = parseFloat(document.getElementById('recharge-amount').value);
+      const password = document.getElementById('recharge-password').value;
+      if (!validateInput(amount, password)) return;
+      showLoading();
+      setTimeout(() => {
+        balance += amount;
+        addTransaction('充值', amount, balance);
+        updateStorage();
+        closeModal('recharge-modal');
+        hideLoading();
+        alert(`成功充值 $${amount.toFixed(2)}`);
+      }, 1500);
+    }
+
+    // 处理支付
+    function processPayment() {
+      const amount = parseFloat(document.getElementById('payment-amount').value);
+      const password = document.getElementById('payment-password').value;
+      if (!validateInput(amount, password)) return;
+      if (!checkBalance(amount)) return;
+      showLoading();
+      setTimeout(() => {
+        balance -= amount;
+        addTransaction('支付', -amount, balance);
+        updateStorage();
+        closeModal('payment-modal');
+        hideLoading();
+        alert(`支付成功 $${amount.toFixed(2)}`);
+      }, 1500);
+    }
+
+    // 处理转账
+    function processTransfer() {
+      const amount = parseFloat(document.getElementById('transfer-amount').value);
+      const password = document.getElementById('transfer-password').value;
+      if (!validateInput(amount, password)) return;
+      if (!checkBalance(amount)) return;
+      showLoading();
+      setTimeout(() => {
+        balance -= amount;
+        addTransaction('转账', -amount, balance);
+        updateStorage();
+        closeModal('transfer-modal');
+        hideLoading();
+        alert(`成功转账 $${amount.toFixed(2)}`);
+      }, 1500);
+    }
+
+    // 处理三界转账（含2%手续费）
+    function processThreeRealmTransfer() {
+      const amount = parseFloat(document.getElementById('three-realm-amount').value);
+      const password = document.getElementById('three-realm-password').value;
+      const targetRealm = document.getElementById('three-realm-target').value;
+      if (!validateInput(amount, password)) return;
+      const fee = amount * 0.02;
+      const totalDeduction = amount + fee;
+      if (!checkBalance(totalDeduction)) return;
+      showLoading();
+      setTimeout(() => {
+        balance -= totalDeduction;
+        addTransaction(`三界转账至 ${targetRealm} (手续费: $${fee.toFixed(2)})`, -totalDeduction, balance);
+        updateStorage();
+        closeModal('three-realm-modal');
+        hideLoading();
+        alert(`成功转账 $${amount.toFixed(2)} 至 ${targetRealm} （手续费 $${fee.toFixed(2)}）`);
+      }, 1500);
+    }
+
+    // 处理跨世转账
+    function processNextLifeTransfer() {
+      const amount = parseFloat(document.getElementById('next-life-amount').value);
+      const password = document.getElementById('next-life-password').value;
+      if (!validateInput(amount, password)) return;
+      if (!checkBalance(amount)) return;
+      showLoading();
+      setTimeout(() => {
+        balance -= amount;
+        addTransaction('跨世转账（给未来的自己）', -amount, balance);
+        updateStorage();
+        closeModal('next-life-modal');
+        hideLoading();
+        alert(`成功跨世转账 $${amount.toFixed(2)}`);
+      }, 1500);
+    }
+
+    // 处理六道轮回查询（无金额变动）
+    function processSixPathQuery() {
+      const paths = ["天道", "人道", "修罗道", "畜生道", "饿鬼道", "地狱道"];
+      const result = paths[Math.floor(Math.random() * paths.length)];
+      document.getElementById('six-path-result').textContent = `您的轮回归宿：${result}`;
+      addTransaction('六道轮回查询', 0, balance);
+      updateStorage();
+    }
+
+    // 处理天命抽签（预扣 $2 费用，根据签文奖励或扣款）
+    function processDivination() {
+      if (balance < 12) {
+        alert('余额不足，无法抽签（至少需要 $12）');
+        return;
+      }
+      showLoading();
+      setTimeout(() => {
+        balance -= 2;
+        const fortunes = ["大吉", "中吉", "小吉", "凶", "大凶"];
+        const fortune = fortunes[Math.floor(Math.random() * fortunes.length)];
+        let net = 0;
+        if (fortune === "大吉") {
+          balance += 20;
+          net = 20 - 2;
+        } else if (fortune === "中吉") {
+          balance += 10;
+          net = 10 - 2;
+        } else if (fortune === "小吉") {
+          balance += 5;
+          net = 5 - 2;
+        } else if (fortune === "凶") {
+          if (!checkBalance(5)) { hideLoading(); alert('余额不足，无法扣款'); return; }
+          balance -= 5;
+          net = -7;
+        } else if (fortune === "大凶") {
+          if (!checkBalance(10)) { hideLoading(); alert('余额不足，无法扣款'); return; }
+          balance -= 10;
+          net = -12;
+        }
+        addTransaction(`天命抽签: ${fortune}`, net, balance);
+        updateStorage();
+        closeModal('divination-modal');
+        hideLoading();
+        alert(`您的签文为【${fortune}】\n本次净${net >= 0 ? "获利" : "亏损"} $${Math.abs(net).toFixed(2)}`);
+      }, 1500);
+    }
+
+    // 处理符箓购买
+    function processTalismanPurchase() {
+      const select = document.getElementById('talisman-type');
+      const password = document.getElementById('talisman-password').value;
+      if (!currentUser || password !== currentUser.password) {
+        alert('安全密码错误');
+        return;
+      }
+      const price = parseFloat(select.value);
+      const talismanType = select.options[select.selectedIndex].text;
+      if (!checkBalance(price)) return;
+      showLoading();
+      setTimeout(() => {
+        balance -= price;
+        addTransaction(`购买符箓：${talismanType}`, -price, balance);
+        purchasedItems.push({ date: new Date().toLocaleString(), name: talismanType, price });
+        updateStorage();
+        closeModal('talisman-modal');
+        hideLoading();
+        alert(`成功购买 ${talismanType}，愿道法护佑`);
+      }, 1500);
+    }
+
+    // 处理丹药炼制
+    function processPillRefinement() {
+      const amount = parseFloat(document.getElementById('pill-amount').value);
+      const password = document.getElementById('pill-password').value;
+      if (!validateInput(amount, password)) return;
+      if (!checkBalance(amount)) return;
+      showLoading();
+      setTimeout(() => {
+        balance -= amount;
+        let pillType = "";
+        let refundMultiplier = 0;
+        if (amount < 20) {
+          pillType = "普通散丹";
+          refundMultiplier = 0;
+        } else if (amount < 50) {
+          pillType = "凝元丹";
+          refundMultiplier = 0.1;
+        } else if (amount < 100) {
+          pillType = "金丹";
+          refundMultiplier = 0.25;
+        } else {
+          pillType = "太乙丹";
+          refundMultiplier = 0.5;
+        }
+        const refund = amount * refundMultiplier;
+        balance += refund;
+        const net = refund - amount;
+        addTransaction(`炼制丹药：${pillType}`, net, balance);
+        purchasedItems.push({ date: new Date().toLocaleString(), name: `炼制出【${pillType}】`, price: refund.toFixed(2) });
+        updateStorage();
+        closeModal('pill-modal');
+        hideLoading();
+        alert(`丹药炼制结果：炼制出【${pillType}】\n本次净${net >= 0 ? "获利" : "亏损"} $${Math.abs(net).toFixed(2)}`);
+      }, 1500);
+    }
+
+
+    function processOffering() {
+      const deity = document.getElementById('offering-deity').value;
+      const method = document.getElementById('offering-method').value;
+      const amount = parseFloat(document.getElementById('offering-amount').value);
+      const password = document.getElementById('offering-password').value;
+      if (!validateInput(amount, password)) return;
+      if (!checkBalance(amount)) return;
+      showLoading();
+      setTimeout(() => {
+        balance -= amount;
+        let multiplier = 1;
+        if(method === "供花") {
+          multiplier = 1.0;
+        } else if(method === "供灯") {
+          multiplier = 1.2;
+        } else if(method === "供斋") {
+          multiplier = 1.5;
+        } else if(method === "供香") {
+          multiplier = 0.8;
+        }
+        const addedMerit = amount * multiplier;
+        merit += addedMerit;
+        addTransaction(`供佛：${deity} - ${method}`, -amount, balance);
+        updateStorage();
+        closeModal('offering-modal');
+        hideLoading();
+        alert(`供佛成功！供养 ${deity}（${method}），扣款 $${amount.toFixed(2)}，功德增加 ${addedMerit.toFixed(2)}`);
+      }, 1500);
+    }
+
+    // 诵经计时（开始/暂停切换）
+    function toggleChanting() {
+      const btn = document.getElementById('toggle-chanting');
+      if (chantingInterval === null) {
+        // 开始诵经
+        btn.textContent = "暂停诵经";
+        document.getElementById('chanting-result').textContent = "诵经中……";
+        chantingInterval = setInterval(() => {
+          const addedMerit = 5;
+          merit += addedMerit;
+          updateStorage();
+          document.getElementById('chanting-result').textContent = `诵经中……已增加功德 ${addedMerit}（累计功德 ${merit.toFixed(2)}）`;
+        }, 10000);
+      } else {
+        // 暂停诵经
+        clearInterval(chantingInterval);
+        chantingInterval = null;
+        btn.textContent = "开始诵经";
+        document.getElementById('chanting-result').textContent = "诵经已暂停";
+      }
+    }
+
+    // 弹窗控制
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
+      clearInputs(modalId);
+      if(modalId === 'six-path-modal'){
+        document.getElementById('six-path-result').textContent = "";
+      }
+      if(modalId === 'divination-modal'){
+        document.getElementById('divination-result').textContent = "";
+      }
+      if(modalId === 'chanting-modal'){
+        if (chantingInterval !== null) {
+          clearInterval(chantingInterval);
+          chantingInterval = null;
+        }
+        document.getElementById('toggle-chanting').textContent = "开始诵经";
+        document.getElementById('chanting-result').textContent = "";
+      }
+    }
+
+    function openModal(modalId) {
+      document.getElementById(modalId).style.display = 'flex';
+    }
+
+    function clearInputs(modalId) {
+      const inputs = document.querySelectorAll(`#${modalId} .input-field`);
+      inputs.forEach(input => input.value = '');
+    }
+
+    // 通用验证：安全密码必须与登录时一致；金额必须为正
+    function validateInput(amount, password) {
+      if (!currentUser || password !== currentUser.password) {
+        alert('安全密码错误');
+        return false;
+      }
+      if (isNaN(amount) || amount <= 0) {
+        alert('请输入有效的金额');
+        return false;
+      }
+      return true;
+    }
+
+    // 余额检查
+    function checkBalance(amount) {
+      if (amount > balance) {
+        alert('余额不足');
+        return false;
+      }
+      return true;
+    }
+
+    /* === 酆都大帝相关功能 === */
+    function refreshLifeDeathRegister() {
+      const names = ["张三", "李四", "王五", "赵六", "孙七"];
+      lifeDeathRegister = [];
+      for (let i = 0; i < 5; i++) {
+        const name = names[Math.floor(Math.random() * names.length)];
+        const fate = Math.random() > 0.5 ? "生" : "死";
+        const time = new Date().toLocaleString();
+        lifeDeathRegister.push({ index: i+1, name, fate, time });
+      }
+      renderLifeDeathRegister();
+      updateFengduStats();
+    }
+
+    function renderLifeDeathRegister() {
+      const tbody = document.getElementById('life-death-body');
+      tbody.innerHTML = lifeDeathRegister.map(entry => `
+        <tr>
+          <td>${entry.index}</td>
+          <td>${entry.name}</td>
+          <td>${entry.fate}</td>
+          <td>${entry.time}</td>
+        </tr>
+      `).join('');
+    }
+
+    function updateFengduStats() {
+      const countSheng = lifeDeathRegister.filter(r => r.fate === "生").length;
+      const countSi = lifeDeathRegister.filter(r => r.fate === "死").length;
+      document.getElementById('fengdu-stats').innerHTML = `<p>统计：生：${countSheng}，死：${countSi}</p>`;
+    }
+
+    function printLifeDeathRegister() {
+      let content = "生死簿详情：\n";
+      lifeDeathRegister.forEach(entry => {
+        content += `序号：${entry.index}，姓名：${entry.name}，状态：${entry.fate}，时间：${entry.time}\n`;
+      });
+      alert(content);
+    }
+
+    /* === 黑白无常相关功能 === */
+    function catchPerson() {
+      const names = ["赵钱孙", "李周吴", "郑王冯", "陈褚卫", "蒋沈韩"];
+      const person = names[Math.floor(Math.random() * names.length)];
+      const now = new Date().toLocaleString();
+      heibaiHistory.push({ name: person, time: now });
+      renderHeibaiHistory();
+      document.getElementById('heibai-result').textContent = `抓到了：${person}`;
+    }
+
+    function renderHeibaiHistory() {
+      const tbody = document.getElementById('heibai-history-body');
+      tbody.innerHTML = heibaiHistory.map((record, idx) => `
+        <tr>
+          <td>${idx + 1}</td>
+          <td>${record.name}</td>
+          <td>${record.time}</td>
+          <td><button class="button button-danger" onclick="deleteHeibaiHistory(${idx})">删除</button></td>
+        </tr>
+      `).join('');
+    }
+
+    function deleteHeibaiHistory(index) {
+      if (confirm("确定删除此抓捕记录吗？")) {
+        heibaiHistory.splice(index, 1);
+        renderHeibaiHistory();
+      }
+    }
+
+    function clearHeibaiHistory() {
+      if (confirm("确定要清空所有抓捕历史吗？")) {
+        heibaiHistory = [];
+        renderHeibaiHistory();
+      }
+    }
+
+    /* === 孟婆相关功能 === */
+    function serveMengPoSoup() {
+      const memories = [
+        "前世为富豪",
+        "前世为贫民",
+        "前世为书生",
+        "前世为武将",
+        "前世为艺人"
+      ];
+      const memory = memories[Math.floor(Math.random() * memories.length)];
+      const now = new Date().toLocaleString();
+      lostMemories.push({ memory, time: now });
+      renderLostMemories();
+      document.getElementById('mengpo-result').textContent = "孟婆汤已倒出，所有前生记忆均已消除。";
+    }
+
+    function renderLostMemories() {
+      const tbody = document.getElementById('lost-memories-body');
+      tbody.innerHTML = lostMemories.map((entry, idx) => `
+        <tr>
+          <td>${idx + 1}</td>
+          <td>${entry.memory}</td>
+          <td>${entry.time}</td>
+          <td><button class="button button-danger" onclick="deleteLostMemory(${idx})">删除</button></td>
+        </tr>
+      `).join('');
+    }
+
+    function deleteLostMemory(index) {
+      if (confirm("确定删除此记忆记录吗？")) {
+        lostMemories.splice(index, 1);
+        renderLostMemories();
+      }
+    }
+
+    function clearLostMemories() {
+      if (confirm("确定清空所有记忆记录吗？")) {
+        lostMemories = [];
+        renderLostMemories();
+      }
+    }
+
+    /* === 阎王相关功能 === */
+    function addYanwangRecord() {
+      const name = document.getElementById('yanwang-name').value.trim();
+      const fate = document.getElementById('yanwang-fate').value;
+      const time = document.getElementById('yanwang-time').value.trim();
+      const remarks = document.getElementById('yanwang-remarks').value.trim();
+      if (name === "" || time === "") {
+        alert("请输入完整的姓名和生死时间");
+        return;
+      }
+      const record = {
+        index: yanwangRegister.length + 1,
+        name,
+        fate,
+        time,
+        remarks
+      };
+      yanwangRegister.push(record);
+      renderYanwangRegister();
+      // 清空输入框
+      document.getElementById('yanwang-name').value = "";
+      document.getElementById('yanwang-time').value = "";
+      document.getElementById('yanwang-remarks').value = "";
+    }
+
+    function renderYanwangRegister() {
+      // 获取搜索关键字和过滤条件
+      const search = document.getElementById('yanwang-search').value.trim().toLowerCase();
+      const filter = document.getElementById('yanwang-filter').value;
+      let records = yanwangRegister;
+      if (search !== "") {
+        records = records.filter(rec => rec.name.toLowerCase().includes(search));
+      }
+      if (filter !== "全部") {
+        records = records.filter(rec => rec.fate === filter);
+      }
+      const tbody = document.getElementById('yanwang-register-body');
+      tbody.innerHTML = records.map((record, idx) => `
+        <tr>
+          <td>${idx + 1}</td>
+          <td>${record.name}</td>
+          <td>${record.fate}</td>
+          <td>${record.time}</td>
+          <td>${record.remarks || ""}</td>
+          <td>
+            <button class="button button-primary" onclick="editYanwangRecord(${idx})">编辑</button>
+            <button class="button button-danger" onclick="deleteYanwangRecord(${idx})">删除</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function editYanwangRecord(index) {
+
+      let record = yanwangRegister[index];
+      const newName = prompt("修改姓名：", record.name);
+      if (newName === null) return;
+      const newFate = prompt("修改状态（生/死）：", record.fate);
+      if (newFate === null) return;
+      const newTime = prompt("修改时间：", record.time);
+      if (newTime === null) return;
+      const newRemarks = prompt("修改备注：", record.remarks || "");
+      if (newRemarks === null) return;
+      yanwangRegister[index] = {
+        index: record.index,
+        name: newName,
+        fate: newFate,
+        time: newTime,
+        remarks: newRemarks
+      };
+      renderYanwangRegister();
+    }
+
+    function deleteYanwangRecord(index) {
+      if (confirm("确定要删除此记录吗？")) {
+        yanwangRegister.splice(index, 1);
+        renderYanwangRegister();
+      }
+    }
+  </script>
+</body>
 </html>
